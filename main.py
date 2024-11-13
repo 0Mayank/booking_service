@@ -296,6 +296,19 @@ class BookingServiceImpl(BookingServiceServicer):
         with self.pool.connection() as conn:
             with conn.cursor(row_factory=dict_row) as cur:
                 rows = cur.execute("SELECT * FROM rooms WHERE hotel_id = %s", (request.hotel_id,)).fetchall()
+                if request.check_in_date != "" and request.check_out_date != "":
+                    not_available = cur.execute("""SELECT rooms.room_id FROM rooms INNER JOIN bookings ON rooms.room_id = bookings.room_id 
+                                        WHERE rooms.hotel_id = %s AND
+                                        NOT ((bookings.check_in_date < %s AND bookings.check_in_date < %s) OR
+                                        (bookings.check_out_date > %s AND bookings.check_out_date > %s))
+                                        """, [request.hotel_id, request.check_in_date, request.check_out_date,
+                                              request.check_in_date, request.check_out_date]).fetchall()
+                else:
+                    not_available = []
+
+                na = {}
+                for room in not_available:
+                    na[room['rooms.room_id']] = False
             
                 # Convert database rows to RoomInfo messages
                 room_infos = []
@@ -306,7 +319,7 @@ class BookingServiceImpl(BookingServiceServicer):
                         hotel_id=row['hotel_id'],
                         room_type=str(row['room_type']),  # Assuming room_type is string in proto
                         price_per_night=float(row['price_per_night']),
-                        available=bool(row.get('available', True))  # Default to True if not in DB
+                        available=bool(na.get(row['room_id'], True))  # Default to True if not in DB
                     )
                     room_infos.append(room_info)
                 

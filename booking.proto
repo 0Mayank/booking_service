@@ -81,6 +81,8 @@ message GetBookingResponse {
 
 message GetRoomsRequest { 
   int64 hotel_id = 1; 
+  string check_in_date = 2;
+  string check_out_date = 3;
 }
 
 message GetRoomsResponse { 

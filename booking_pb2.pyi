@@ -82,10 +82,14 @@ class GetBookingResponse(_message.Message):
     def __init__(self, booking_id: _Optional[int] = ..., customer_name: _Optional[str] = ..., customer_email: _Optional[str] = ..., room_id: _Optional[int] = ..., check_in_date: _Optional[str] = ..., check_out_date: _Optional[str] = ..., num_guests: _Optional[int] = ..., cancelled: bool = ..., transaction_id: _Optional[int] = ..., room_number: _Optional[int] = ...) -> None: ...
 
 class GetRoomsRequest(_message.Message):
-    __slots__ = ("hotel_id",)
+    __slots__ = ("hotel_id", "check_in_date", "check_out_date")
     HOTEL_ID_FIELD_NUMBER: _ClassVar[int]
+    CHECK_IN_DATE_FIELD_NUMBER: _ClassVar[int]
+    CHECK_OUT_DATE_FIELD_NUMBER: _ClassVar[int]
     hotel_id: int
-    def __init__(self, hotel_id: _Optional[int] = ...) -> None: ...
+    check_in_date: str
+    check_out_date: str
+    def __init__(self, hotel_id: _Optional[int] = ..., check_in_date: _Optional[str] = ..., check_out_date: _Optional[str] = ...) -> None: ...
 
 class GetRoomsResponse(_message.Message):
     __slots__ = ("rooms",)
