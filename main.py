@@ -19,7 +19,6 @@ from booking_pb2 import (
     GetBookingResponse,
     GetRoomsRequest,
     GetRoomsResponse,
-    ListCustomerBookingsInner,
     ListCustomerBookingsRequest,
     ListCustomerBookingsResponse,
     RoomInfo,
@@ -143,8 +142,10 @@ class BookingServiceImpl(BookingServiceServicer):
                     room_id, 
                     check_in_date,
                     check_out_date,
-                    num_guests
+                    num_guests,
+                    transaction_id
                 ) VALUES (
+                %s,
                 %s,
                 %s,
                 %s,
@@ -160,9 +161,10 @@ class BookingServiceImpl(BookingServiceServicer):
                     request.room_id, 
                     request.check_in_date, 
                     request.check_out_date, 
-                    request.num_guests
+                    request.num_guests,
+                    request.transaction_id
                 )).fetchone()
-                _ = cur.execute("UPDATE ROOMS SET (available = %s) WHERE room_id = %s", [False, request.room_id])
+                _ = cur.execute("UPDATE ROOMS SET available = %s WHERE room_id = %s", [False, request.room_id])
 
                 assert row is not None
                 return CreateBookingResponse(booking_id=row[0])
@@ -187,8 +189,8 @@ class BookingServiceImpl(BookingServiceServicer):
                     values.append(request.room_id)
                     cur_room = cur.execute("SELECT room_id FROOM bookings WHERE booking_id = %s", [request.booking_id]).fetchone()
                     assert cur_room is not None
-                    _ = cur.execute("UPDATE ROOMS SET (available = %s) WHERE room_id = %s", [False, cur_room])
-                    _ = cur.execute("UPDATE ROOMS SET (available = %s) WHERE room_id = %s", [True, request.room_id])
+                    _ = cur.execute("UPDATE ROOMS SET available = %s WHERE room_id = %s", [False, cur_room])
+                    _ = cur.execute("UPDATE ROOMS SET available = %s WHERE room_id = %s", [True, request.room_id])
                 if request.check_in_date not in [None, ""]:
                     update_parts.append(" check_in_date = %s")
                     values.append(request.check_in_date)
@@ -226,6 +228,7 @@ class BookingServiceImpl(BookingServiceServicer):
                 row = cur.execute("SELECT * FROM bookings WHERE booking_id = %s;", (request.booking_id,)).fetchone()
                 if row is None:
                     context.abort(grpc.StatusCode.NOT_FOUND, "Booking not found")
+                assert row is not None
                 
                 # Explicitly create the response with proper type conversions
                 return GetBookingResponse(
@@ -236,7 +239,8 @@ class BookingServiceImpl(BookingServiceServicer):
                     check_in_date=str(row['check_in_date']),
                     check_out_date=str(row['check_out_date']),
                     num_guests=int(row['num_guests']),
-                    cancelled=bool(row.get('cancelled', False))  # Default to False if not in DB
+                    cancelled=bool(row.get('cancelled', False)),  # Default to False if not in DB
+                    transaction_id=int(row.get('transaction_id', 0))
                 )
 
     def CancelBooking(self, request: CancelBookingRequest, context: ServicerContext):
@@ -248,8 +252,19 @@ class BookingServiceImpl(BookingServiceServicer):
     def ListCustomerBookings(self, request: ListCustomerBookingsRequest, context: ServicerContext):
         with self.pool.connection() as conn:
             with conn.cursor(row_factory=dict_row) as cur:
-                row = map(lambda r: ListCustomerBookingsInner(**r), 
-                          cur.execute("SELECT booking_id, cancelled FROM bookings inner join rooms on bookings.room_id = rooms.room_id WHERE customer_email = %s AND rooms.hotel_id = %s;", [request.customer_email, request.hotel_id])
+                row = map(lambda r: GetBookingResponse(
+                    booking_id=int(r['booking_id']),
+                    customer_name=str(r['customer_name']),
+                    customer_email=str(r['customer_email']),
+                    room_id=r['room_id'],
+                    check_in_date=str(r['check_in_date']),
+                    check_out_date=str(r['check_out_date']),
+                    num_guests=int(r['num_guests']),
+                    cancelled=bool(r.get('cancelled', False)),  # Default to False if not in DB
+                    transaction_id=int(r.get('transaction_id', 0)),
+                    room_number=int(r['room_number'])
+                ), 
+                          cur.execute("SELECT * FROM bookings inner join rooms on bookings.room_id = rooms.room_id WHERE customer_email = %s AND rooms.hotel_id = %s;", [request.customer_email, request.hotel_id])
                         .fetchall())
                 return ListCustomerBookingsResponse(bookings=row)
 

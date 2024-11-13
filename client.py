@@ -44,14 +44,15 @@ class BookingServiceClient:
         return response.rooms
 
     def create_booking(self, customer_name, customer_email, room_id, 
-                      check_in_date, check_out_date, num_guests):
+                      check_in_date, check_out_date, num_guests, transaction_id):
         request = booking_pb2.CreateBookingRequest(
             customer_name=customer_name,
             customer_email=customer_email,
             room_id=room_id,
             check_in_date=check_in_date,
             check_out_date=check_out_date,
-            num_guests=num_guests
+            num_guests=num_guests,
+            transaction_id=transaction_id
         )
         response = self.stub.CreateBooking(request)
         return response.booking_id
@@ -83,8 +84,8 @@ def main():
         # 1. Create a hotel
         hotel_id = client.create_hotel(
             name="Grand Hotel",
-            total_rooms=100,
-            room_types=4,
+            total_rooms=4,
+            room_types=2,
             address="123 Main St",
             phone="555-0123",
             website="www.grandhotel.com"
@@ -104,7 +105,19 @@ def main():
                 "room_number": 102,
                 "room_type": 1,
                 "price_per_night": 150.0
-            }
+            },
+            {
+                "hotel_id": hotel_id,
+                "room_number": 201,
+                "room_type": 2,
+                "price_per_night": 300.0
+            },
+            {
+                "hotel_id": hotel_id,
+                "room_number": 202,
+                "room_type": 2,
+                "price_per_night": 300.0
+            },
         ]
         client.create_rooms(rooms_data)
         print("Created rooms successfully")
@@ -113,35 +126,36 @@ def main():
         rooms = client.get_rooms(hotel_id)
         print(f"Available rooms: {rooms}")
 
-        # 4. Create a booking
-        booking_id = client.create_booking(
-            customer_name="John Doe",
-            customer_email="john@example.com",
-            room_id=rooms[0].room_id,
-            check_in_date="2024-12-01",
-            check_out_date="2024-12-05",
-            num_guests=2
-        )
-        print(f"Created booking with ID: {booking_id}")
-
-        # 5. Get booking details
-        booking = client.get_booking(booking_id)
-        print(f"Booking details: {booking}")
-
-        # 6. Update booking
-        updated_booking_id = client.update_booking(
-            booking_id=booking_id,
-            num_guests=3
-        )
-        print(f"Updated booking with ID: {updated_booking_id}")
-
-        # 7. List customer bookings
-        bookings = client.list_customer_bookings("john@example.com", hotel_id)
-        print(f"Customer bookings: {bookings}")
-
-        # 8. Cancel booking
-        status = client.cancel_booking(booking_id)
-        print("Booking cancelled")
+        # # 4. Create a booking
+        # booking_id = client.create_booking(
+        #     customer_name="John Doe",
+        #     customer_email="john@example.com",
+        #     room_id=rooms[0].room_id,
+        #     check_in_date="2024-12-01",
+        #     check_out_date="2024-12-05",
+        #     num_guests=2,
+        #     transaction_id = 425
+        # )
+        # print(f"Created booking with ID: {booking_id}")
+        #
+        # # 5. Get booking details
+        # booking = client.get_booking(booking_id)
+        # print(f"Booking details: {booking}")
+        #
+        # # 6. Update booking
+        # updated_booking_id = client.update_booking(
+        #     booking_id=booking_id,
+        #     num_guests=3
+        # )
+        # print(f"Updated booking with ID: {updated_booking_id}")
+        #
+        # # 7. List customer bookings
+        # bookings = client.list_customer_bookings("john@example.com", hotel_id)
+        # print(f"Customer bookings: {bookings}")
+        #
+        # # 8. Cancel booking
+        # status = client.cancel_booking(booking_id)
+        # print("Booking cancelled")
 
     except grpc.RpcError as e:
         print(f"An error occurred: {e.code()}: {e.details()}")

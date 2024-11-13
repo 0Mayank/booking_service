@@ -28,20 +28,22 @@ class CreateRoomsInner(_message.Message):
     def __init__(self, hotel_id: _Optional[int] = ..., room_number: _Optional[int] = ..., room_type: _Optional[int] = ..., price_per_night: _Optional[float] = ...) -> None: ...
 
 class CreateBookingRequest(_message.Message):
-    __slots__ = ("customer_name", "customer_email", "room_id", "check_in_date", "check_out_date", "num_guests")
+    __slots__ = ("customer_name", "customer_email", "room_id", "check_in_date", "check_out_date", "num_guests", "transaction_id")
     CUSTOMER_NAME_FIELD_NUMBER: _ClassVar[int]
     CUSTOMER_EMAIL_FIELD_NUMBER: _ClassVar[int]
     ROOM_ID_FIELD_NUMBER: _ClassVar[int]
     CHECK_IN_DATE_FIELD_NUMBER: _ClassVar[int]
     CHECK_OUT_DATE_FIELD_NUMBER: _ClassVar[int]
     NUM_GUESTS_FIELD_NUMBER: _ClassVar[int]
+    TRANSACTION_ID_FIELD_NUMBER: _ClassVar[int]
     customer_name: str
     customer_email: str
     room_id: int
     check_in_date: str
     check_out_date: str
     num_guests: int
-    def __init__(self, customer_name: _Optional[str] = ..., customer_email: _Optional[str] = ..., room_id: _Optional[int] = ..., check_in_date: _Optional[str] = ..., check_out_date: _Optional[str] = ..., num_guests: _Optional[int] = ...) -> None: ...
+    transaction_id: int
+    def __init__(self, customer_name: _Optional[str] = ..., customer_email: _Optional[str] = ..., room_id: _Optional[int] = ..., check_in_date: _Optional[str] = ..., check_out_date: _Optional[str] = ..., num_guests: _Optional[int] = ..., transaction_id: _Optional[int] = ...) -> None: ...
 
 class CreateBookingResponse(_message.Message):
     __slots__ = ("booking_id",)
@@ -56,7 +58,7 @@ class GetBookingRequest(_message.Message):
     def __init__(self, booking_id: _Optional[int] = ...) -> None: ...
 
 class GetBookingResponse(_message.Message):
-    __slots__ = ("booking_id", "customer_name", "customer_email", "room_id", "check_in_date", "check_out_date", "num_guests", "cancelled")
+    __slots__ = ("booking_id", "customer_name", "customer_email", "room_id", "check_in_date", "check_out_date", "num_guests", "cancelled", "transaction_id", "room_number")
     BOOKING_ID_FIELD_NUMBER: _ClassVar[int]
     CUSTOMER_NAME_FIELD_NUMBER: _ClassVar[int]
     CUSTOMER_EMAIL_FIELD_NUMBER: _ClassVar[int]
@@ -65,6 +67,8 @@ class GetBookingResponse(_message.Message):
     CHECK_OUT_DATE_FIELD_NUMBER: _ClassVar[int]
     NUM_GUESTS_FIELD_NUMBER: _ClassVar[int]
     CANCELLED_FIELD_NUMBER: _ClassVar[int]
+    TRANSACTION_ID_FIELD_NUMBER: _ClassVar[int]
+    ROOM_NUMBER_FIELD_NUMBER: _ClassVar[int]
     booking_id: int
     customer_name: str
     customer_email: str
@@ -73,7 +77,9 @@ class GetBookingResponse(_message.Message):
     check_out_date: str
     num_guests: int
     cancelled: bool
-    def __init__(self, booking_id: _Optional[int] = ..., customer_name: _Optional[str] = ..., customer_email: _Optional[str] = ..., room_id: _Optional[int] = ..., check_in_date: _Optional[str] = ..., check_out_date: _Optional[str] = ..., num_guests: _Optional[int] = ..., cancelled: bool = ...) -> None: ...
+    transaction_id: int
+    room_number: int
+    def __init__(self, booking_id: _Optional[int] = ..., customer_name: _Optional[str] = ..., customer_email: _Optional[str] = ..., room_id: _Optional[int] = ..., check_in_date: _Optional[str] = ..., check_out_date: _Optional[str] = ..., num_guests: _Optional[int] = ..., cancelled: bool = ..., transaction_id: _Optional[int] = ..., room_number: _Optional[int] = ...) -> None: ...
 
 class GetRoomsRequest(_message.Message):
     __slots__ = ("hotel_id",)
@@ -130,16 +136,8 @@ class ListCustomerBookingsRequest(_message.Message):
 class ListCustomerBookingsResponse(_message.Message):
     __slots__ = ("bookings",)
     BOOKINGS_FIELD_NUMBER: _ClassVar[int]
-    bookings: _containers.RepeatedCompositeFieldContainer[ListCustomerBookingsInner]
-    def __init__(self, bookings: _Optional[_Iterable[_Union[ListCustomerBookingsInner, _Mapping]]] = ...) -> None: ...
-
-class ListCustomerBookingsInner(_message.Message):
-    __slots__ = ("booking_id", "cancelled")
-    BOOKING_ID_FIELD_NUMBER: _ClassVar[int]
-    CANCELLED_FIELD_NUMBER: _ClassVar[int]
-    booking_id: int
-    cancelled: bool
-    def __init__(self, booking_id: _Optional[int] = ..., cancelled: bool = ...) -> None: ...
+    bookings: _containers.RepeatedCompositeFieldContainer[GetBookingResponse]
+    def __init__(self, bookings: _Optional[_Iterable[_Union[GetBookingResponse, _Mapping]]] = ...) -> None: ...
 
 class RoomInfo(_message.Message):
     __slots__ = ("room_id", "room_number", "hotel_id", "room_type", "price_per_night", "available")

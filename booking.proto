@@ -55,6 +55,7 @@ message CreateBookingRequest {
   string check_in_date = 4;
   string check_out_date = 5;
   int32 num_guests = 6;
+  int64 transaction_id = 7;
 }
 
 message CreateBookingResponse {
@@ -74,6 +75,8 @@ message GetBookingResponse {
   string check_out_date = 6;
   int32 num_guests = 7;
   bool cancelled = 8;
+  int64 transaction_id = 9;
+  int32 room_number = 10;
 }
 
 message GetRoomsRequest { 
@@ -109,12 +112,7 @@ message ListCustomerBookingsRequest {
 }
 
 message ListCustomerBookingsResponse {
-  repeated ListCustomerBookingsInner bookings = 1;
-}
-
-message ListCustomerBookingsInner {
-  int64 booking_id = 1;
-  bool cancelled = 2;
+  repeated GetBookingResponse bookings = 1;
 }
 
 message RoomInfo {
