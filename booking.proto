@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package booking;
+option go_package = "./booking";
 
 service BookingService {
   // Create a new booking
@@ -55,7 +56,7 @@ message CreateBookingRequest {
   string check_in_date = 4;
   string check_out_date = 5;
   int32 num_guests = 6;
-  int64 transaction_id = 7;
+  string transaction_id = 7;
 }
 
 message CreateBookingResponse {
@@ -75,8 +76,9 @@ message GetBookingResponse {
   string check_out_date = 6;
   int32 num_guests = 7;
   bool cancelled = 8;
-  int64 transaction_id = 9;
+  string transaction_id = 9;
   int32 room_number = 10;
+  int32 room_type = 11;
 }
 
 message GetRoomsRequest { 

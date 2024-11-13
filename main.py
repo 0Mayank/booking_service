@@ -225,7 +225,7 @@ class BookingServiceImpl(BookingServiceServicer):
     def GetBooking(self, request: GetBookingRequest, context: ServicerContext):
         with self.pool.connection() as conn:
             with conn.cursor(row_factory=dict_row) as cur:
-                row = cur.execute("SELECT * FROM bookings WHERE booking_id = %s;", (request.booking_id,)).fetchone()
+                row = cur.execute("SELECT * FROM bookings INNER JOIN rooms on rooms.room_id = bookings.room_id WHERE booking_id = %s;", (request.booking_id,)).fetchone()
                 if row is None:
                     context.abort(grpc.StatusCode.NOT_FOUND, "Booking not found")
                 assert row is not None
@@ -240,7 +240,9 @@ class BookingServiceImpl(BookingServiceServicer):
                     check_out_date=str(row['check_out_date']),
                     num_guests=int(row['num_guests']),
                     cancelled=bool(row.get('cancelled', False)),  # Default to False if not in DB
-                    transaction_id=int(row.get('transaction_id', 0))
+                    transaction_id=str(row.get('transaction_id', "")),
+                    room_number=int(row['room_number']),
+                    room_type=int(row['room_type'])
                 )
 
     def CancelBooking(self, request: CancelBookingRequest, context: ServicerContext):
@@ -252,7 +254,11 @@ class BookingServiceImpl(BookingServiceServicer):
     def ListCustomerBookings(self, request: ListCustomerBookingsRequest, context: ServicerContext):
         with self.pool.connection() as conn:
             with conn.cursor(row_factory=dict_row) as cur:
-                row = map(lambda r: GetBookingResponse(
+                # print(request.customer_email)
+                # print(request.hotel_id)
+                rows = cur.execute("SELECT * FROM bookings inner join rooms on bookings.room_id = rooms.room_id WHERE bookings.customer_email = %s AND rooms.hotel_id = %s;", [request.customer_email, request.hotel_id]).fetchall()
+                # print(rows)
+                row = list(map(lambda r: GetBookingResponse(
                     booking_id=int(r['booking_id']),
                     customer_name=str(r['customer_name']),
                     customer_email=str(r['customer_email']),
@@ -261,11 +267,10 @@ class BookingServiceImpl(BookingServiceServicer):
                     check_out_date=str(r['check_out_date']),
                     num_guests=int(r['num_guests']),
                     cancelled=bool(r.get('cancelled', False)),  # Default to False if not in DB
-                    transaction_id=int(r.get('transaction_id', 0)),
-                    room_number=int(r['room_number'])
-                ), 
-                          cur.execute("SELECT * FROM bookings inner join rooms on bookings.room_id = rooms.room_id WHERE customer_email = %s AND rooms.hotel_id = %s;", [request.customer_email, request.hotel_id])
-                        .fetchall())
+                    transaction_id=str(r.get('transaction_id', "")),
+                    room_number=int(r['room_number']),
+                    room_type=int(r['room_type'])
+                ), rows))
                 return ListCustomerBookingsResponse(bookings=row)
 
     def CreateRooms(self, request: CreateRoomsRequest, context: ServicerContext):
