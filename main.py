@@ -317,7 +317,7 @@ class BookingServiceImpl(BookingServiceServicer):
                         room_id=row['room_id'],
                         room_number=row['room_number'],
                         hotel_id=row['hotel_id'],
-                        room_type=str(row['room_type']),  # Assuming room_type is string in proto
+                        room_type=row['room_type'],
                         price_per_night=float(row['price_per_night']),
                         available=bool(na.get(row['room_id'], True))  # Default to True if not in DB
                     )

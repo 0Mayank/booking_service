@@ -154,10 +154,10 @@ class RoomInfo(_message.Message):
     room_id: int
     room_number: int
     hotel_id: int
-    room_type: str
+    room_type: int
     price_per_night: float
     available: bool
-    def __init__(self, room_id: _Optional[int] = ..., room_number: _Optional[int] = ..., hotel_id: _Optional[int] = ..., room_type: _Optional[str] = ..., price_per_night: _Optional[float] = ..., available: bool = ...) -> None: ...
+    def __init__(self, room_id: _Optional[int] = ..., room_number: _Optional[int] = ..., hotel_id: _Optional[int] = ..., room_type: _Optional[int] = ..., price_per_night: _Optional[float] = ..., available: bool = ...) -> None: ...
 
 class CreateHotelEntryRequest(_message.Message):
     __slots__ = ("hotel_name", "total_rooms", "room_types", "address", "phone", "website")

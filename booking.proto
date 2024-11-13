@@ -121,7 +121,7 @@ message RoomInfo {
   int64 room_id = 1;
   int32 room_number = 2;
   int64 hotel_id = 3;
-  string room_type = 4;
+  int32 room_type = 4;
   double price_per_night = 5;
   bool available = 6;
 }
